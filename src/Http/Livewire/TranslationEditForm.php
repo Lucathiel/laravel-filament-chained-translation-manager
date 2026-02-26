@@ -9,24 +9,35 @@ use Statikbe\LaravelChainedTranslator\ChainedTranslationManager;
 
 class TranslationEditForm extends Component
 {
-    public string $group;
+    public const EVENT_TRANSLATIONS_SAVED = 'translationsSaved';
 
-    public string $translationKey;
+    public string $group = '';
+    public string $translationKey = '';
+    public string $originalTranslationKey = '';
 
-    public array $translations;
+    public array $translations = [];
+    public array $initialTranslations = [];
+    public array $locales = [];
 
-    public array $initialTranslations;
-
-    public array $locales;
-
-    /**
-     * @const string
-     */
-    const EVENT_TRANSLATIONS_SAVED = 'translationsSaved';
-
-    public function mount(): void
+    public function mount(?string $group = null,?string $key = null,?string $translationKey = null,?string $translation_key = null): void 
     {
-        $this->initialTranslations = $this->translations;
+        $this->group = $group ?? request()->query('group') ?? '';
+    
+        $resolvedKey =
+            $translationKey
+            ?? $translation_key
+            ?? $key
+            ?? request()->query('translationKey')
+            ?? request()->query('translation_key')
+            ?? request()->query('key')
+            ?? '';
+    
+        if ($resolvedKey === '') {
+            throw new \RuntimeException('Translation key is missing (empty). Check Livewire mount params mapping.');
+        }
+    
+        $this->translationKey = $resolvedKey;
+        $this->originalTranslationKey = $resolvedKey;
     }
 
     public function save(string $locale): void
